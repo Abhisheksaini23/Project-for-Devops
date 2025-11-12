@@ -11,20 +11,27 @@ pipeline {
     stages {
         stage('Build Docker Image') {
             steps {
-                echo '🛠️ Building Docker image...'
-                bat """
-                docker build -t %DOCKERHUB_USER%/%IMAGE_NAME%:latest .
-                """
+                echo '🚀 Building Docker image...'
+        bat '''
+        REM Add Docker path for Jenkins service
+        set PATH=%PATH%;C:\\Program Files\\Docker\\Docker\\resources\\bin
+
+        REM Verify Docker is available
+        docker --version
+
+        REM Build the Docker image
+        docker build -t abhishekkk23/nodejs-devops-project:latest .
+        '''
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
- echo '🚀 Building Docker image...'
+         echo '📤 Pushing Docker image to Docker Hub...'
         bat '''
         set PATH=%PATH%;C:\\Program Files\\Docker\\Docker\\resources\\bin
-        docker version
-        docker build -t abhishekkk23/nodejs-devops-project:latest .
+        docker login -u abhishekkk23 -p abhisheker
+        docker push abhishekkk23/nodejs-devops-project:latest
         '''
             }
         }
