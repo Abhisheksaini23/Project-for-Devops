@@ -1,10 +1,20 @@
-FROM node:10.17.0 AS dep
-COPY . /app
-WORKDIR /app
-RUN npm install --production
+# Use official Node.js image
+FROM node:18
 
-FROM gcr.io/distroless/nodejs
-COPY --from=dep /app /app
-WORKDIR /app
+# Create app directory
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source files
+COPY . .
+
+# Expose port
 EXPOSE 3000
-CMD ["index.js"]
+
+# Start the app
+CMD ["npm", "start"]
