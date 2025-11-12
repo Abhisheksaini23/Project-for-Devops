@@ -29,6 +29,13 @@ pipeline {
             }
         }
 
+        stage('Verify Docker') {
+    steps {
+        bat 'docker version'
+    }
+}
+
+
         stage('Build Docker Image') {
             steps {
                 bat 'docker build -t %DOCKER_IMAGE%:latest .'
