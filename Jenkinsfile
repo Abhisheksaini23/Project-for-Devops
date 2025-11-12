@@ -20,11 +20,12 @@ pipeline {
 
         stage('Push to Docker Hub') {
             steps {
-                echo '🚀 Pushing Docker image to DockerHub...'
-                bat """
-                docker login -u %DOCKERHUB_USER% -p abhisheker
-                docker push %DOCKERHUB_USER%/%IMAGE_NAME%:latest
-                """
+ echo '🚀 Building Docker image...'
+        bat '''
+        set PATH=%PATH%;C:\\Program Files\\Docker\\Docker\\resources\\bin
+        docker version
+        docker build -t abhishekkk23/nodejs-devops-project:latest .
+        '''
             }
         }
 
