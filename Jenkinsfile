@@ -3,70 +3,63 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "abhishekkk23/project-for-devops"
-        EC2_IP = "15.206.205.65"
-        USER = "ubuntu"
+        DOCKERHUB_USERNAME = 'abhishekkk23'
+        DOCKERHUB_PASSWORD = 'abhisheker'
+        DOCKER_IMAGE = 'abhishekkk23/nodejs-devops'
+        EC2_HOST = 'ubuntu@15.206.205.65'
+        PEM_KEY = 'C:\\ProgramData\\Jenkins\\.jenkins\\server1.pem' // Path on Windows Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                 git branch: 'main', url: 'https://github.com/Abhisheksaini23/Project-for-Devops.git'
-
+                git branch: 'main', url: 'https://github.com/Abhisheksaini23/Project-for-Devops.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                bat 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'npm test || echo "No tests found"'
+                bat 'npm test || echo "No tests to run"'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:latest .'
+                bat 'docker build -t %DOCKER_IMAGE%:latest .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    docker push $IMAGE_NAME:latest
-                    '''
-                }
+                bat '''
+                docker login -u %DOCKERHUB_USERNAME% -p %DOCKERHUB_PASSWORD%
+                docker push %DOCKER_IMAGE%:latest
+                '''
             }
         }
 
         stage('Deploy to EC2') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'ec2-key', keyFileVariable: 'EC2_KEY')]) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no -i $EC2_KEY $USER@$EC2_IP "
-                        docker pull $IMAGE_NAME:latest &&
-                        docker stop nodeapp || true &&
-                        docker rm nodeapp || true &&
-                        docker run -d -p 3000:3000 --name nodeapp $IMAGE_NAME:latest
-                    "
-                    '''
-                }
+                bat '''
+                pscp -i "%PEM_KEY%" docker-compose.yml %EC2_HOST%:/home/ubuntu/
+                plink -i "%PEM_KEY%" %EC2_HOST% "docker pull %DOCKER_IMAGE%:latest && docker stop nodejs-app || true && docker rm nodejs-app || true && docker run -d -p 3000:3000 --name nodejs-app %DOCKER_IMAGE%:latest"
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "✅ Deployment successful! Visit http://$EC2_IP:3000"
+            echo '✅ Deployment Successful!'
         }
         failure {
-            echo "❌ Pipeline failed! Check Jenkins logs."
+            echo '❌ Pipeline failed! Check Jenkins logs.'
         }
     }
 }
