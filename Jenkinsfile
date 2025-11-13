@@ -16,25 +16,25 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                bat 'npm install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                sh 'npm test || echo "No tests found, skipping tests..."'
+                bat 'npm test || echo "No tests found, skipping tests..."'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
+                bat 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                sh '''
+                bat '''
                     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
                     docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
                     docker logout
