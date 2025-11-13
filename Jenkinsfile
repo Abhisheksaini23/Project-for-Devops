@@ -2,50 +2,45 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'abhishekkk23'
-        DOCKERHUB_PASS = 'abhisheker'
-        IMAGE_NAME = 'nodejs-app'
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')  // Jenkins credentials ID
+        DOCKERHUB_REPO = 'abhishekkk23/project-for-devops'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm   // ✅ use same repo Jenkinsfile is in
+                git branch: 'main', credentialsId: 'Githublink3', url: 'https://github.com/Abhisheksaini23/Project-for-Devops.git'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'npm test || echo "No tests found, skipping tests..."'
+                bat 'npm install' // ✅ Use bat instead of sh
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
+                bat """
+                docker build -t %DOCKERHUB_REPO%:latest .
+                """
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Login & Push to DockerHub') {
             steps {
-                sh '''
-                    echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                    docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
-                    docker logout
-                '''
+                bat """
+                docker login -u %DOCKERHUB_CREDENTIALS_USR% -p %DOCKERHUB_CREDENTIALS_PSW%
+                docker push %DOCKERHUB_REPO%:latest
+                docker logout
+                """
             }
         }
     }
 
     post {
         success {
-            echo '✅ Docker image successfully built and pushed to Docker Hub!'
+            echo '✅ Docker image pushed to DockerHub successfully!'
         }
         failure {
             echo '❌ Pipeline failed!'
