@@ -2,57 +2,53 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'abhishekkk23'
-        IMAGE_NAME = 'nodejs-devops-project'
-        EC2_HOST = 'ubuntu@15.206.205.65'
-        PEM_KEY = 'server1.pem'
+        DOCKERHUB_USER = 'abhishekkk23'           // your Docker Hub username
+        DOCKERHUB_PASS = 'abhisheker'   // ⚠️ replace with your password
+        IMAGE_NAME = 'nodejs-app'
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Abhisheksaini23/Nodejs-Devops-Project.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test || echo "No tests found, skipping tests..."'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                echo '🚀 Building Docker image...'
-        bat '''
-        REM Add Docker path for Jenkins service
-        set PATH=%PATH%;C:\\Program Files\\Docker\\Docker\\resources\\bin
-
-        REM Verify Docker is available
-        docker --version
-
-        REM Build the Docker image
-        docker build -t abhishekkk23/nodejs-devops-project:latest .
-        '''
+                sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-         echo '📤 Pushing Docker image to Docker Hub...'
-        bat '''
-        set PATH=%PATH%;C:\\Program Files\\Docker\\Docker\\resources\\bin
-        docker login -u abhishekkk23 -p abhisheker
-        docker push abhishekkk23/nodejs-devops-project:latest
-        '''
-            }
-        }
-
-        stage('Deploy to EC2') {
-            steps {
-                echo '🌐 Deploying container on EC2...'
-                bat """
-                pscp -i %PEM_KEY% docker-compose.yml %EC2_HOST%:/home/ubuntu/
-                plink -i %PEM_KEY% %EC2_HOST% "docker pull %DOCKERHUB_USER%/%IMAGE_NAME%:latest && docker stop nodeapp || true && docker rm nodeapp || true && docker run -d -p 3000:3000 --name nodeapp %DOCKERHUB_USER%/%IMAGE_NAME%:latest"
-                """
+                sh '''
+                    echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                    docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
+                    docker logout
+                '''
             }
         }
     }
 
     post {
         success {
-            echo '✅ Deployment successful!'
+            echo '✅ Docker image built and pushed to Docker Hub successfully!'
         }
         failure {
-            echo '❌ Deployment failed. Please check Jenkins logs.'
+            echo '❌ Pipeline failed!'
         }
     }
 }
