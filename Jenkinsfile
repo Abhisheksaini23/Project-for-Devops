@@ -2,40 +2,43 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = 'abhishekkk23'           // your Docker Hub username
-        DOCKERHUB_PASS = 'abhisheker'   // ⚠️ replace with your password
+        DOCKERHUB_USER = 'abhishekkk23'
+        DOCKERHUB_PASS = 'abhisheker'
         IMAGE_NAME = 'nodejs-app'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Abhisheksaini23/Nodejs-Devops-Project.git'
-                credentialsId: 'Githublink3'
+                git(
+                    branch: 'main',
+                    url: 'https://github.com/Abhisheksaini23/Nodejs-Devops-Project.git',
+                    credentialsId: 'Githublink3'
+                )
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                sh 'npm install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat 'npm test || echo "No tests found, skipping tests..."'
+                sh 'npm test || echo "No tests found, skipping tests..."'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
+                sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:latest .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                bat '''
+                sh '''
                     echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
                     docker push $DOCKERHUB_USER/$IMAGE_NAME:latest
                     docker logout
@@ -46,10 +49,13 @@ pipeline {
 
     post {
         success {
-            echo '✅ Docker image built and pushed to Docker Hub successfully!'
+            echo '✅ Docker image successfully built and pushed to Docker Hub!'
         }
         failure {
             echo '❌ Pipeline failed!'
         }
     }
 }
+
+
+
