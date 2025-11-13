@@ -10,11 +10,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git(
-                    branch: 'main',
-                    url: 'https://github.com/Abhisheksaini23/Nodejs-Devops-Project.git',
-                    credentialsId: 'Githublink3'
-                )
+                checkout scm   // ✅ use same repo Jenkinsfile is in
             }
         }
 
@@ -56,6 +52,3 @@ pipeline {
         }
     }
 }
-
-
-
