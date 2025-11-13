@@ -21,9 +21,11 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat """
-                docker build -t %DOCKERHUB_REPO%:latest .
-                """
+                bat '''
+        set PATH=%PATH%;C:\\Program Files\\Docker\\Docker\\resources\\bin
+        docker --version
+        docker build -t abhishekkk23/project-for-devops:latest .
+        '''
             }
         }
 
