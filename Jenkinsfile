@@ -31,11 +31,13 @@ pipeline {
 
         stage('Login & Push to DockerHub') {
             steps {
-                bat """
-                docker login -u %DOCKERHUB_CREDENTIALS_USR% -p %DOCKERHUB_CREDENTIALS_PSW%
-                docker push %DOCKERHUB_REPO%:latest
-                docker logout
-                """
+               bat '''
+        set PATH=C:\\Program Files\\Docker\\Docker\\resources\\bin;%PATH%
+        docker --version
+        docker login -u abhishekkk23 -p abhisheker
+        docker push abhishekkk23/project-for-devops:latest
+        docker logout
+        '''
             }
         }
     }
